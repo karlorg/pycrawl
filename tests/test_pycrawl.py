@@ -18,8 +18,16 @@ class TestPycrawl(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_something(self):
+    def test_valid_url(self):
         argv = ['pycrawl.py', 'http://www.bbc.co.uk/sitemap.xml']
+        pycrawl.main(argv)  # should not raise
+
+    def test_nonexistent_url(self):
+        argv = ['pycrawl.py', 'http://nonexistentsite.nes/badpath']
+        pycrawl.main(argv)  # should not raise
+
+    def test_non_html_url(self):
+        argv = ['pycrawl.py', 'http://static.tvtropes.org/namespace8.png']
         pycrawl.main(argv)  # should not raise
 
     def tearDown(self):

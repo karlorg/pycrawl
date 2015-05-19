@@ -49,11 +49,17 @@ def links_from_url(url):
     robots_url_obj = parsed_url._replace(path='/robots.txt')
     robots_url = robots_url_obj.geturl()
     rp = robotparser.RobotFileParser(robots_url)
-    rp.read()
-    if not rp.can_fetch("*", url):
+    try:
+        # the following does not error on missing robots.txt files
+        rp.read()
+        if not rp.can_fetch("*", url):
+            return []
+    except:
         return []
-    data = requests.get(url).text
+    return links_from_data(requests.get(url).text)
 
+
+def links_from_data(data):
     link_finder = HTMLLinkFinder()
     link_finder.feed(data)
     return link_finder.found_links
