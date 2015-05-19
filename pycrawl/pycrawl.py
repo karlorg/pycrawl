@@ -31,10 +31,10 @@ def main(argv=None):
             pass
         else:
             raise
-    print(links_from_url(url))
+    print(process_url(url))
 
 
-def links_from_url(url):
+def process_url(url):
     if not can_robots_fetch(url):
         return []
     basename = urlparse(url).hostname

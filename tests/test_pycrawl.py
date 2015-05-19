@@ -20,13 +20,17 @@ except:  # Python 2
 
 import bs4
 
+from tests.run_server import run_server, stop_server
 from pycrawl import pycrawl
 
 
 class TestPycrawl(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.server = run_server()
+
+    def tearDown(self):
+        stop_server(self.server)
 
     @contextlib.contextmanager
     def run_main_with_url(self, url):
@@ -61,8 +65,9 @@ class TestPycrawl(unittest.TestCase):
                 bs = bs4.BeautifulSoup(f)
                 self.assertTrue(bool(bs.find(text="Daria")))
 
-    def tearDown(self):
-        pass
+    def test_local_file(self):
+        with self.run_main_with_url('http://localhost:8000'):
+            self.assertTrue(os.path.isfile('localhost/__root__'))
 
 if __name__ == '__main__':
     unittest.main()
