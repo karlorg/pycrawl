@@ -10,7 +10,7 @@ Tests for `pycrawl` module.
 
 from contextlib import contextmanager
 import errno
-import os
+import re
 import shutil
 import time
 import unittest
@@ -26,6 +26,15 @@ from pycrawl import pycrawl
 
 
 class TestPycrawl(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = run_server()
+        time.sleep(0.5)  # give it time to start up
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_server(cls.server)
 
     def setUp(self):
         pass
@@ -49,34 +58,21 @@ class TestPycrawl(unittest.TestCase):
                 else:
                     raise
 
-    @contextmanager
-    def local_server(self):
-        self.server = run_server()
-        time.sleep(0.5)
-        yield
-        stop_server(self.server)
-
     def test_nonexistent_url(self):
         with self.run_main_with_url('http://nonexistentsite.nes/badpath'):
             pass  # does not raise
 
     def test_non_html_url(self):
         with self.run_main_with_url(
-                'http://static.tvtropes.org/namespace8.png'):
+                'http://localhost:8000/Python_logo_100x100.jpg'):
             pass  # does not raise
 
     def test_valid_url_creates_dir_and_file(self):
-        with self.run_main_with_url('http://outpostdaria.info'):
-            self.assertTrue(os.path.isdir('outpostdaria.info'))
-            self.assertTrue(os.path.isfile('outpostdaria.info/__root__'))
-            with open('outpostdaria.info/__root__') as f:
-                bs = bs4.BeautifulSoup(f)
-                self.assertTrue(bool(bs.find(text="Daria")))
+        with self.run_main_with_url('http://localhost:8000'):
+            with open('localhost/__root__') as f:
+                document = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(document.find(text=re.compile("Text"))))
 
-    def test_local_file(self):
-        with self.local_server():
-            with self.run_main_with_url('http://localhost:8000'):
-                self.assertTrue(os.path.isfile('localhost/__root__'))
 
 if __name__ == '__main__':
     unittest.main()
