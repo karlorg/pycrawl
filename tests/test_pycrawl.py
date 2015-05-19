@@ -42,10 +42,6 @@ class TestPycrawl(unittest.TestCase):
                 else:
                     raise
 
-    def test_valid_url(self):
-        with self.run_main_with_url('http://www.bbc.co.uk/sitemap.xml'):
-            pass  # does not raise
-
     def test_nonexistent_url(self):
         with self.run_main_with_url('http://nonexistentsite.nes/badpath'):
             pass  # does not raise
@@ -55,7 +51,7 @@ class TestPycrawl(unittest.TestCase):
                 'http://static.tvtropes.org/namespace8.png'):
             pass  # does not raise
 
-    def test_creates_dir(self):
+    def test_valid_url_creates_dir(self):
         with self.run_main_with_url('http://outpostdaria.info'):
             self.assertTrue(os.path.isdir('outpostdaria.info'))
 
