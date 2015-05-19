@@ -9,26 +9,22 @@ Run a local HTTP server for testing purposes
 """
 
 from contextlib import contextmanager
-import multiprocessing
 import os
-import socketserver
-try:
-    from http.server import SimpleHTTPRequestHandler
-except:
-    from SimpleHTTPServer import SimpleHTTPRequestHandler
+import sys
+from subprocess import Popen
 
 
 def run_server(port=8000):
     with chdir('example-site'):
-        httpd = socketserver.TCPServer(("", port), SimpleHTTPRequestHandler)
-        process = multiprocessing.Process(target=httpd.serve_forever)
-        process.start()
-    return (httpd, process)
+        if sys.version_info[0] == 2:
+            command = 'python -m SimpleHTTPServer 8000'
+        else:
+            command = 'python -m http.server --bind localhost 8000'
+        process = Popen(command.split())
+    return process
 
 
-def stop_server(server):
-    httpd, process = server
-    httpd.shutdown()  # XXX: blocks forever
+def stop_server(process):
     process.terminate()
 
 

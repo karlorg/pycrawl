@@ -8,10 +8,11 @@ test_pycrawl
 Tests for `pycrawl` module.
 """
 
-import contextlib
+from contextlib import contextmanager
 import errno
 import os
 import shutil
+import time
 import unittest
 try:  # Python 3
     from urllib.parse import urlparse
@@ -27,12 +28,12 @@ from pycrawl import pycrawl
 class TestPycrawl(unittest.TestCase):
 
     def setUp(self):
-        self.server = run_server()
+        pass
 
     def tearDown(self):
-        stop_server(self.server)
+        pass
 
-    @contextlib.contextmanager
+    @contextmanager
     def run_main_with_url(self, url):
         argv = ['pycrawl.py', url]
         try:
@@ -47,6 +48,13 @@ class TestPycrawl(unittest.TestCase):
                     pass
                 else:
                     raise
+
+    @contextmanager
+    def local_server(self):
+        self.server = run_server()
+        time.sleep(0.5)
+        yield
+        stop_server(self.server)
 
     def test_nonexistent_url(self):
         with self.run_main_with_url('http://nonexistentsite.nes/badpath'):
@@ -66,8 +74,9 @@ class TestPycrawl(unittest.TestCase):
                 self.assertTrue(bool(bs.find(text="Daria")))
 
     def test_local_file(self):
-        with self.run_main_with_url('http://localhost:8000'):
-            self.assertTrue(os.path.isfile('localhost/__root__'))
+        with self.local_server():
+            with self.run_main_with_url('http://localhost:8000'):
+                self.assertTrue(os.path.isfile('localhost/__root__'))
 
 if __name__ == '__main__':
     unittest.main()
