@@ -13,6 +13,7 @@ except ImportError:  # Python 2
 
 import bs4
 import requests
+from requests.exceptions import ConnectionError
 
 
 def main(argv=None):
@@ -43,7 +44,10 @@ def process_url(url):
     if not path:
         path = '__root__'
     filename = os.path.join(basename, path)
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except ConnectionError:
+        return []
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
         file_content = response.text
@@ -63,19 +67,44 @@ def links_from_data(data):
     return result
 
 
+robots_txt_cache = {}
+
+
+class AllowAllRobots(object):
+    """Dummy RobotFileParser-alike that allows all paths"""
+    def can_fetch(self, robot, path):
+        return True
+
+
 def can_robots_fetch(url):
     parsed_url = urlparse(url)
     robots_url_obj = parsed_url._replace(path='/robots.txt')
     robots_url = robots_url_obj.geturl()
-    rp = robotparser.RobotFileParser(robots_url)
+
     try:
-        # the following does not error on missing robots.txt files
-        rp.read()
-        if not rp.can_fetch("*", url):
-            return False
-    except:
-        return False
-    return True
+        rp = robots_txt_cache[robots_url]
+        return rp.can_fetch("*", url)
+    except KeyError:
+        try:
+            response = requests.get(robots_url)
+        except ConnectionError:
+            # no robots.txt => assume robots are OK
+            robots_txt_cache[robots_url] = AllowAllRobots()
+            return True
+        if response.status_code != 200:
+            robots_txt_cache[robots_url] = AllowAllRobots()
+            return True
+
+        try:
+            rp = robotparser.RobotFileParser(robots_url)
+            rp.read()
+            if not rp.can_fetch("*", url):
+                robots_txt_cache[robots_url] = rp
+                return False
+        except:
+            raise RuntimeError("unreadable robots.txt")
+        robots_txt_cache[robots_url] = rp
+        return True
 
 
 if __name__ == '__main__':
