@@ -10,6 +10,7 @@ Tests for `pycrawl` module.
 
 from contextlib import contextmanager
 import errno
+import os
 import re
 import shutil
 import time
@@ -65,7 +66,8 @@ class TestPycrawl(unittest.TestCase):
     def test_non_html_url(self):
         with self.run_main_with_url(
                 'http://localhost:8000/Python_logo_100x100.jpg'):
-            pass  # does not raise
+            self.assertTrue(
+                os.path.isfile('localhost/Python_logo_100x100.jpg'))
 
     def test_valid_url_creates_dir_and_file(self):
         with self.run_main_with_url('http://localhost:8000'):

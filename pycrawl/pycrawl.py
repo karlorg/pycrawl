@@ -37,9 +37,13 @@ def main(argv=None):
 def process_url(url):
     if not can_robots_fetch(url):
         return []
-    basename = urlparse(url).hostname
+    parsed_url = urlparse(url)
+    basename = parsed_url.hostname
+    path = parsed_url.path[1:]  # strip leading /
+    if not path:
+        path = '__root__'
+    filename = os.path.join(basename, path)
     response = requests.get(url)
-    filename = os.path.join(basename, '__root__')
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
         file_content = response.text
