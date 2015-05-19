@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import errno
+import os
 import sys
 try:  # Python 3
     from urllib import robotparser
@@ -21,6 +23,15 @@ def main(argv=None):
     except IndexError:
         print("Usage: {} URL".format(sys.argv[0]))
         sys.exit(1)
+    parsed_url = urlparse(url)
+    basename = parsed_url.hostname
+    try:
+        os.makedirs(basename)
+    except OSError as e:
+        if e.errno == errno.EEXIST and os.path.isdir(basename):
+            pass
+        else:
+            raise
     print(links_from_url(url))
 
 
