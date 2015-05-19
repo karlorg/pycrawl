@@ -18,6 +18,8 @@ try:  # Python 3
 except:  # Python 2
     from urlparse import urlparse
 
+import bs4
+
 from pycrawl import pycrawl
 
 
@@ -51,9 +53,13 @@ class TestPycrawl(unittest.TestCase):
                 'http://static.tvtropes.org/namespace8.png'):
             pass  # does not raise
 
-    def test_valid_url_creates_dir(self):
+    def test_valid_url_creates_dir_and_file(self):
         with self.run_main_with_url('http://outpostdaria.info'):
             self.assertTrue(os.path.isdir('outpostdaria.info'))
+            self.assertTrue(os.path.isfile('outpostdaria.info/__root__'))
+            with open('outpostdaria.info/__root__') as f:
+                bs = bs4.BeautifulSoup(f)
+                self.assertTrue(bool(bs.find(text="Daria")))
 
     def tearDown(self):
         pass

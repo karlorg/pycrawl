@@ -23,8 +23,7 @@ def main(argv=None):
     except IndexError:
         print("Usage: {} URL".format(sys.argv[0]))
         sys.exit(1)
-    parsed_url = urlparse(url)
-    basename = parsed_url.hostname
+    basename = urlparse(url).hostname
     try:
         os.makedirs(basename)
     except OSError as e:
@@ -38,7 +37,20 @@ def main(argv=None):
 def links_from_url(url):
     if not can_robots_fetch(url):
         return []
-    return links_from_data(requests.get(url).text)
+    basename = urlparse(url).hostname
+    response = requests.get(url)
+    filename = os.path.join(basename, '__root__')
+    if response.headers['content-type'] == 'text/html':
+        filemode = 'w'
+        file_content = response.text
+        links = links_from_data(response.text)
+    else:
+        filemode = 'wb'
+        file_content = response.content
+        links = []
+    with open(filename, filemode) as f:
+        f.write(file_content)
+    return links
 
 
 def links_from_data(data):
