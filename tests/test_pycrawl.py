@@ -19,8 +19,8 @@ class TestPycrawl(unittest.TestCase):
         pass
 
     def test_something(self):
-        pycrawl.main()
-        # should not raise
+        argv = ['pycrawl.py', 'http://www.bbc.co.uk/sitemap.xml']
+        pycrawl.main(argv)  # should not raise
 
     def tearDown(self):
         pass

@@ -1,16 +1,28 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 try:
     from urllib import robotparser  # Python 3
+    from urllib.parse import urlparse
 except ImportError:
     import robotparser  # Python 2
+    from urlparse import urlparse
 
 
-def main():
-    rp = robotparser.RobotFileParser("http://www.tvtropes.com/robots.txt")
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+    try:
+        url = argv[1]
+    except IndexError:
+        print("Usage: {} URL".format(sys.argv[0]))
+        sys.exit(1)
+    parsed_url = urlparse(url)
+    robots_url_obj = parsed_url._replace(path='/robots.txt')
+    robots_url = robots_url_obj.geturl()
+    rp = robotparser.RobotFileParser(robots_url)
     rp.read()
-    url = "http://www.tvtropes.com/pmwiki/pmwiki.php/Main/AcmeProducts"
     if rp.can_fetch("*", url):
         print("we're good")
     else:
