@@ -55,9 +55,7 @@ def process_url(url):
 
 def links_from_data(data):
     bs = bs4.BeautifulSoup(data)
-    result = []
-    for tag in bs.find_all('a'):
-        result.append(tag['href'])
+    result = [tag['href'] for tag in bs.find_all('a')]
     return result
 
 
