@@ -19,7 +19,8 @@ class TestPycrawl(unittest.TestCase):
         pass
 
     def test_something(self):
-        pass
+        pycrawl.main()
+        # should not raise
 
     def tearDown(self):
         pass
