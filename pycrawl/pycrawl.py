@@ -24,6 +24,12 @@ def main(argv=None):
     except IndexError:
         print("Usage: {} URL".format(sys.argv[0]))
         sys.exit(1)
+
+    create_download_dir(url)
+    download_site(url)
+
+
+def create_download_dir(url):
     basename = urlparse(url).hostname
     try:
         os.makedirs(basename)
@@ -32,7 +38,10 @@ def main(argv=None):
             pass
         else:
             raise
-    print(process_url(url))
+
+
+def download_site(url):
+    process_url(url)
 
 
 def process_url(url):
