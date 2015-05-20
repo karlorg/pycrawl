@@ -47,8 +47,6 @@ def download_site(root_url):
     root_netloc = urlparse(root_url).netloc
     while len(pending_urls) > 0:
         url = pending_urls.pop()
-        if url in done_urls:
-            continue
         done_urls.add(url)
         links = process_url(url)
         for link in links:
