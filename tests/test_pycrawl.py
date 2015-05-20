@@ -26,12 +26,14 @@ from tests.run_server import run_server, stop_server
 from pycrawl import pycrawl
 
 
-def run_main_with_url(url):
+def run_main_with_url(url, max_depth=None):
     """Run main on the given URL, then delete the downloaded files after."""
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
             argv = ['pycrawl.py', url]
+            if max_depth is not None:
+                argv.extend(['-d{}'.format(max_depth)])
             try:
                 pycrawl.main(argv)
                 f(*args, **kwargs)
@@ -116,6 +118,13 @@ class TestPycrawl(unittest.TestCase):
 
         # mailto: links should not be downloaded
         self.assertFalse(os.path.isfile('localhost/nobody@nowhere.com'))
+
+    @run_main_with_url('http://localhost:8000', max_depth=0)
+    def test_max_depth_zero(self):
+        self.assertTrue(os.path.isfile('localhost/__root__'),
+                        "requested file downloaded")
+        self.assertFalse(os.path.isfile('localhost/local-explicit.html'),
+                         "linked file not downloaded")
 
 
 if __name__ == '__main__':

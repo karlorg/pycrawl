@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 from collections import deque, namedtuple
 import errno
 import logging
@@ -25,16 +26,18 @@ logging.basicConfig(filename='log',
 
 
 def main(argv=None):
-    if argv is None:
-        argv = sys.argv
-    try:
-        url = argv[1]
-    except IndexError:
-        print("Usage: {} URL".format(sys.argv[0]))
-        sys.exit(1)
+    if argv is not None:
+        sys.argv = argv
+    parser = argparse.ArgumentParser()
+    parser.add_argument("url", help="the base URL to retrieve")
+    parser.add_argument("-d", "--max-depth", type=int,
+                        help="maximum recursion depth")
+    args = parser.parse_args()
 
+    url = args.url
+    max_depth = args.max_depth
     create_download_dir(url)
-    download_site(url)
+    download_site(url, max_depth)
 
 
 def create_download_dir(url):
@@ -48,11 +51,12 @@ def create_download_dir(url):
             raise
 
 
-def download_site(root_url):
+def download_site(root_url, max_depth=None):
     pending_urls = deque()
     pending_urls.append(root_url)
     done_urls = set()
     root_netloc = urlparse(root_url).netloc
+    at_depth = 0
     while len(pending_urls) > 0:
         url = get_canonical_url(pending_urls.popleft())
         done_urls.add(url)
@@ -64,12 +68,10 @@ def download_site(root_url):
             if parsed.hostname is None:
                 parsed = parsed._replace(netloc=root_netloc, scheme='http')
                 link = parsed.geturl()
-            if parsed.netloc == root_netloc and link not in done_urls:
-                # XXX: temporarily limit to fetching a few urls so I can
-                # test on live sites without being too much of a
-                # nuisance
-                if len(done_urls) + len(pending_urls) < 20:
-                    pending_urls.append(link)
+            if ((max_depth is None or at_depth < max_depth) and
+                    parsed.netloc == root_netloc and link not in done_urls):
+                pending_urls.append(link)
+        at_depth += 1
 
 
 def get_canonical_url(url):
