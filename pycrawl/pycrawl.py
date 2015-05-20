@@ -56,6 +56,7 @@ def download_site(root_url):
     while len(pending_urls) > 0:
         url = get_canonical_url(pending_urls.popleft())
         done_urls.add(url)
+        print("fetching {}".format(url))
         links = process_url_and_get_links(url)
         for link in links:
             link = get_canonical_url(link)
