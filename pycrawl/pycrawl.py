@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from collections import namedtuple
 import errno
 import os
 import sys
@@ -79,8 +80,9 @@ def process_url_and_get_links(url):
 
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
-        file_content = update_links(response.text, basename)
-        links = links_from_data(response.text)
+        update_result = update_and_return_links(response.text, basename)
+        file_content = update_result.data
+        links = update_result.links
     else:
         filemode = 'wb'
         file_content = response.content
@@ -90,34 +92,30 @@ def process_url_and_get_links(url):
     return links
 
 
-def links_from_data(data):
-    bs = bs4.BeautifulSoup(data)
-    result = set()
-    for a in bs.find_all('a'):
-        result.add(a['href'])  # XXX: assumes href exists
-    for img in bs.find_all('img'):
-        result.add(img['src'])
-    return result
+UpdateResult = namedtuple('UpdateResult', ['data', 'links'])
 
 
-def update_links(data, hostname):
-    """Update local links in HTML to work when saved locally."""
+def update_and_return_links(data, hostname):
+    """Update and return local links in HTML."""
+    soup = bs4.BeautifulSoup(data)
+    links = set()
 
-    def update_soup_attr_links(tagname, attrname):
-        for tag in bs.find_all(tagname):
+    def process_attrs(tagname, attrname):
+        for tag in soup.find_all(tagname):
             try:
                 attr = tag[attrname]
             except KeyError:
                 continue
             parsed_attr = urlparse(attr)
             if parsed_attr.hostname == hostname:
-                new_parsed_attr = parsed_attr._replace(scheme='', netloc='')
-                tag[attrname] = new_parsed_attr.geturl()
+                parsed_attr = parsed_attr._replace(scheme='', netloc='')
+                attr = parsed_attr.geturl()
+                tag[attrname] = attr
+            links.add(attr)
 
-    bs = bs4.BeautifulSoup(data)
-    update_soup_attr_links('a', 'href')
-    update_soup_attr_links('img', 'src')
-    return str(bs)
+    process_attrs('a', 'href')
+    process_attrs('img', 'src')
+    return UpdateResult(data=str(soup), links=links)
 
 
 robots_txt_cache = {}
