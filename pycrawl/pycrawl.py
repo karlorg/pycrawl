@@ -33,21 +33,7 @@ def main(argv=None):
                         help="maximum recursion depth")
     args = parser.parse_args()
 
-    url = args.url
-    max_depth = args.max_depth
-    create_download_dir(url)
-    download_site(url, max_depth)
-
-
-def create_download_dir(url):
-    basename = urlparse(url).hostname
-    try:
-        os.makedirs(basename)
-    except OSError as e:
-        if e.errno == errno.EEXIST and os.path.isdir(basename):
-            pass
-        else:
-            raise
+    download_site(args.url, args.max_depth)
 
 
 def download_site(root_url, max_depth=None):
