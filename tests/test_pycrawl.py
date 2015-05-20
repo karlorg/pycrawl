@@ -81,9 +81,9 @@ class TestPycrawl(unittest.TestCase):
             root = bs4.BeautifulSoup(f)
         self.assertTrue(bool(root.find(text=re.compile("Text"))))
         # now try a page linked from the first
-        with open('localhost/page.html') as f:
-            page = bs4.BeautifulSoup(f)
-        self.assertTrue(bool(page.find(text=re.compile("linked"))))
+        with open('localhost/local-relative.html') as f:
+            relative = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(relative.find(text=re.compile("relative"))))
 
 
 if __name__ == '__main__':
