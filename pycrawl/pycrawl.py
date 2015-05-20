@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-from collections import deque, namedtuple
 import errno
 import logging
 import os
@@ -52,34 +51,43 @@ def create_download_dir(url):
 
 
 def download_site(root_url, max_depth=None):
-    pending_urls = [root_url]
-    done_urls = set()
     root_netloc = urlparse(root_url).netloc
+    pending_urls = [get_canonical_url(root_url)]
+    done_urls = set()
+
     at_depth = 0
     while len(pending_urls) > 0:
+        # at each level of recursion, we take all pending urls out of
+        # the queue and loop over them
         urls = pending_urls
         pending_urls = []
-        for raw_url in urls:
-            url = get_canonical_url(raw_url)
+        for url in urls:
             done_urls.add(url)
+
+            # process the URL
             links = process_url_and_get_links(url)
-            for link in links:
-                link = get_canonical_url(link)
-                parsed = urlparse(link)
-                if parsed.hostname is None:
-                    parsed = parsed._replace(netloc=root_netloc, scheme='http')
-                    link = parsed.geturl()
-                if ((max_depth is None or at_depth < max_depth) and
-                        parsed.netloc == root_netloc and
+
+            # no need to add pending links if we're at max recursion depth
+            if max_depth is not None and at_depth >= max_depth:
+                continue
+            # normalize links from this URL and add to pending as appropriate
+            for raw_link in links:
+                link = get_canonical_url(raw_link, root_netloc=root_netloc)
+                if (urlparse(link).netloc == root_netloc and
                         link not in done_urls):
                     pending_urls.append(link)
         at_depth += 1
 
 
-def get_canonical_url(url):
-    return urlparse(url)._replace(params='',
-                                  query='',
-                                  fragment='').geturl()
+def get_canonical_url(url, root_netloc=None):
+    """Drop params, query and fragment; optionally add netloc to relative links.
+    """
+    parsed = urlparse(url)._replace(params='',
+                                    query='',
+                                    fragment='')
+    if root_netloc is not None and parsed.hostname is None:
+        parsed = parsed._replace(scheme='http', netloc=root_netloc)
+    return parsed.geturl()
 
 
 def process_url_and_get_links(url):
@@ -116,7 +124,12 @@ def get_host_and_filename(url):
 
 
 def get_content_and_links(data, hostname):
-    """Update and return local links in HTML."""
+    """Update and return local links in HTML.
+
+    ie. return an HTML document equivalent to the input, but with
+    local links adjusted to work in a downloaded copy of the site.
+    Also return a list of all link targets from this document.
+    """
     soup = bs4.BeautifulSoup(data)
     links = []
 
@@ -138,8 +151,7 @@ def get_content_and_links(data, hostname):
     process_attrs('a', 'href')
     process_attrs('img', 'src')
     try:
-        out_data = str(soup)
-        return (out_data, links)
+        return (str(soup), links)
     except RuntimeError:
         # can't render through BeautifulSoup; for now, just output the
         # original data with links unchanged
