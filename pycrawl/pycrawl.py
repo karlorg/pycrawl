@@ -67,7 +67,7 @@ def download_site(root_url):
                 # XXX: temporarily limit to fetching a few urls so I can
                 # test on live sites without being too much of a
                 # nuisance
-                if len(done_urls) < 20:
+                if len(done_urls) + len(pending_urls) < 20:
                     pending_urls.append(link)
 
 
