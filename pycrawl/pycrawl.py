@@ -48,7 +48,7 @@ def download_site(root_url):
     while len(pending_urls) > 0:
         url = pending_urls.pop()
         done_urls.add(url)
-        links = process_url(url)
+        links = process_url_and_get_links(url)
         for link in links:
             parsed = urlparse(link)
             if parsed.hostname is None:
@@ -62,19 +62,21 @@ def download_site(root_url):
                     pending_urls.add(link)
 
 
-def process_url(url):
+def process_url_and_get_links(url):
     if not can_robots_fetch(url):
         return []
+    try:
+        response = requests.get(url)
+    except ConnectionError:
+        return []
+
     parsed_url = urlparse(url)
     basename = parsed_url.hostname
     path = parsed_url.path[1:]  # strip leading /
     if not path:
         path = '__root__'
     filename = os.path.join(basename, path)
-    try:
-        response = requests.get(url)
-    except ConnectionError:
-        return []
+
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
         file_content = update_links(response.text, basename)
