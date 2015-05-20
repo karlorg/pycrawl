@@ -57,7 +57,11 @@ def download_site(root_url):
                 parsed = parsed._replace(netloc=root_netloc, scheme='http')
                 link = parsed.geturl()
             if parsed.netloc == root_netloc and link not in done_urls:
-                pending_urls.add(link)
+                # XXX: temporarily limit to fetching 10 urls so I can
+                # test on live sites without being too much of a
+                # nuisance
+                if len(done_urls) < 10:
+                    pending_urls.add(link)
 
 
 def process_url(url):
