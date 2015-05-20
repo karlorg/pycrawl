@@ -76,10 +76,14 @@ class TestPycrawl(unittest.TestCase):
         self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
 
     @run_main_with_url('http://localhost:8000')
-    def test_valid_url_creates_dir_and_file(self):
+    def test_valid_url_downloads_site(self):
         with open('localhost/__root__') as f:
-            document = bs4.BeautifulSoup(f)
-        self.assertTrue(bool(document.find(text=re.compile("Text"))))
+            root = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(root.find(text=re.compile("Text"))))
+        # now try a page linked from the first
+        with open('localhost/page.html') as f:
+            page = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(page.find(text=re.compile("linked"))))
 
 
 if __name__ == '__main__':
