@@ -95,9 +95,7 @@ def process_url_and_get_links(url):
 
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
-        update_result = update_and_return_links(response.text, hostname)
-        file_content = update_result.data
-        links = update_result.links
+        file_content, links = get_content_and_links(response.text, hostname)
     else:
         filemode = 'wb'
         file_content = response.content
@@ -117,10 +115,7 @@ def get_host_and_filename(url):
     return (hostname, os.path.join(hostname, *path))
 
 
-UpdateResult = namedtuple('UpdateResult', ['data', 'links'])
-
-
-def update_and_return_links(data, hostname):
+def get_content_and_links(data, hostname):
     """Update and return local links in HTML."""
     soup = bs4.BeautifulSoup(data)
     links = []
@@ -144,11 +139,11 @@ def update_and_return_links(data, hostname):
     process_attrs('img', 'src')
     try:
         out_data = str(soup)
-        return UpdateResult(data=out_data, links=links)
+        return (out_data, links)
     except RuntimeError:
         # can't render through BeautifulSoup; for now, just output the
         # original data with links unchanged
-        return UpdateResult(data=data, links=links)
+        return (data, links)
 
 
 robots_txt_cache = {}
