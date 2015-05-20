@@ -107,6 +107,8 @@ def update_and_return_links(data, hostname):
             except KeyError:
                 continue
             parsed_attr = urlparse(attr)
+            if parsed_attr.scheme == 'mailto':
+                continue
             if parsed_attr.hostname == hostname:
                 parsed_attr = parsed_attr._replace(scheme='', netloc='')
                 attr = parsed_attr.geturl()

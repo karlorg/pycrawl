@@ -110,6 +110,9 @@ class TestPycrawl(unittest.TestCase):
         self.assertIsNone(urlparse(img_src).hostname,
                           "img src URLs are changed to relative")
 
+        # mailto: links should not be downloaded
+        self.assertFalse(os.path.isfile('localhost/nobody@nowhere.com'))
+
 
 if __name__ == '__main__':
     unittest.main()
