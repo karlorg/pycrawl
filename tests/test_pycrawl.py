@@ -103,6 +103,10 @@ class TestPycrawl(unittest.TestCase):
         self.assertIsNone(urlparse(abs_link).hostname,
                           "absolute local links are changed to relative")
 
+        # subdirectories should have been created
+        self.assertTrue(os.path.isfile('localhost/subdir/subpage.html'),
+                        "subdirectories are created")
+
         # the image used on the front page should also be downloaded
         self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
         # check link in index page

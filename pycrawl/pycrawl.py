@@ -87,6 +87,8 @@ def process_url_and_get_links(url):
         filemode = 'wb'
         file_content = response.content
         links = []
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
     with open(filename, filemode) as f:
         f.write(file_content)
     return links
