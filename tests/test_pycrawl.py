@@ -80,10 +80,18 @@ class TestPycrawl(unittest.TestCase):
         with open('localhost/__root__') as f:
             root = bs4.BeautifulSoup(f)
         self.assertTrue(bool(root.find(text=re.compile("Text"))))
+        rel_link = root.find('a', text=re.compile("relative"))['href']
+        self.assertIsNone(urlparse(rel_link).hostname,
+                          "relative links are unchanged")
+        abs_link = root.find('a', text=re.compile("explicit"))['href']
+        self.assertIsNone(urlparse(abs_link).hostname,
+                          "absolute local links are changed to relative")
+
         # now try a page linked from the first
         with open('localhost/local-relative.html') as f:
             relative = bs4.BeautifulSoup(f)
         self.assertTrue(bool(relative.find(text=re.compile("relative"))))
+
         # and one linked via an explicit local domain
         with open('localhost/local-explicit.html') as f:
             explicit = bs4.BeautifulSoup(f)
