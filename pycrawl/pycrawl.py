@@ -52,24 +52,27 @@ def create_download_dir(url):
 
 
 def download_site(root_url, max_depth=None):
-    pending_urls = deque()
-    pending_urls.append(root_url)
+    pending_urls = [root_url]
     done_urls = set()
     root_netloc = urlparse(root_url).netloc
     at_depth = 0
     while len(pending_urls) > 0:
-        url = get_canonical_url(pending_urls.popleft())
-        done_urls.add(url)
-        links = process_url_and_get_links(url)
-        for link in links:
-            link = get_canonical_url(link)
-            parsed = urlparse(link)
-            if parsed.hostname is None:
-                parsed = parsed._replace(netloc=root_netloc, scheme='http')
-                link = parsed.geturl()
-            if ((max_depth is None or at_depth < max_depth) and
-                    parsed.netloc == root_netloc and link not in done_urls):
-                pending_urls.append(link)
+        urls = pending_urls
+        pending_urls = []
+        for raw_url in urls:
+            url = get_canonical_url(raw_url)
+            done_urls.add(url)
+            links = process_url_and_get_links(url)
+            for link in links:
+                link = get_canonical_url(link)
+                parsed = urlparse(link)
+                if parsed.hostname is None:
+                    parsed = parsed._replace(netloc=root_netloc, scheme='http')
+                    link = parsed.geturl()
+                if ((max_depth is None or at_depth < max_depth) and
+                        parsed.netloc == root_netloc and
+                        link not in done_urls):
+                    pending_urls.append(link)
         at_depth += 1
 
 

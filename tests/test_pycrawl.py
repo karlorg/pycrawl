@@ -106,7 +106,7 @@ class TestPycrawl(unittest.TestCase):
                           "absolute local links are changed to relative")
 
         # a page not directly linked from the root is included
-        self.assertTrue(os.path.isfile('localhost/depth2.html'))
+        self.assertTrue(os.path.isfile('localhost/depth3.html'))
 
         # subdirectories should have been created
         self.assertTrue(os.path.isfile('localhost/subdir/subpage.html'),
@@ -129,14 +129,18 @@ class TestPycrawl(unittest.TestCase):
         self.assertFalse(os.path.isfile('localhost/local-explicit.html'),
                          "linked file not downloaded")
 
-    @run_main_with_url('http://localhost:8000', max_depth=1)
-    def test_max_depth_one(self):
+    @run_main_with_url('http://localhost:8000', max_depth=2)
+    def test_max_depth_two(self):
         self.assertTrue(os.path.isfile('localhost/__root__'),
                         "requested file downloaded")
         self.assertTrue(os.path.isfile('localhost/local-explicit.html'),
                         "linked file downloaded")
-        self.assertFalse(os.path.isfile('localhost/depth2.html'),
-                         "file linked from first linked file not downloaded")
+        self.assertTrue(os.path.isfile('localhost/local-relative.html'),
+                        "linked file downloaded")
+        self.assertTrue(os.path.isfile('localhost/depth2.html'),
+                        "file linked from first linked file downloaded")
+        self.assertFalse(os.path.isfile('localhost/depth3.html'),
+                         "file linked from second linked file not downloaded")
 
 if __name__ == '__main__':
     unittest.main()
