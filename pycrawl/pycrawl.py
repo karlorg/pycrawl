@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from collections import namedtuple
+from collections import deque, namedtuple
 import errno
 import logging
 import os
@@ -49,11 +49,12 @@ def create_download_dir(url):
 
 
 def download_site(root_url):
-    pending_urls = {root_url}
+    pending_urls = deque()
+    pending_urls.append(root_url)
     done_urls = set()
     root_netloc = urlparse(root_url).netloc
     while len(pending_urls) > 0:
-        url = get_canonical_url(pending_urls.pop())
+        url = get_canonical_url(pending_urls.popleft())
         done_urls.add(url)
         links = process_url_and_get_links(url)
         for link in links:
@@ -67,7 +68,7 @@ def download_site(root_url):
                 # test on live sites without being too much of a
                 # nuisance
                 if len(done_urls) < 20:
-                    pending_urls.add(link)
+                    pending_urls.append(link)
 
 
 def get_canonical_url(url):
@@ -113,7 +114,7 @@ UpdateResult = namedtuple('UpdateResult', ['data', 'links'])
 def update_and_return_links(data, hostname):
     """Update and return local links in HTML."""
     soup = bs4.BeautifulSoup(data)
-    links = set()
+    links = []
 
     def process_attrs(tagname, attrname):
         for tag in soup.find_all(tagname):
@@ -128,7 +129,7 @@ def update_and_return_links(data, hostname):
                 parsed_attr = parsed_attr._replace(scheme='', netloc='')
                 attr = parsed_attr.geturl()
                 tag[attrname] = attr
-            links.add(attr)
+            links.append(attr)
 
     process_attrs('a', 'href')
     process_attrs('img', 'src')
