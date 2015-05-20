@@ -88,16 +88,11 @@ def process_url_and_get_links(url):
     except ConnectionError:
         return []
 
-    parsed_url = urlparse(url)
-    basename = parsed_url.hostname
-    path = parsed_url.path[1:]  # strip leading /
-    if not path:
-        path = '__root__'
-    filename = os.path.join(basename, path)
+    hostname, filename = get_host_and_filename(url)
 
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
-        update_result = update_and_return_links(response.text, basename)
+        update_result = update_and_return_links(response.text, hostname)
         file_content = update_result.data
         links = update_result.links
     else:
@@ -109,6 +104,14 @@ def process_url_and_get_links(url):
     with open(filename, filemode) as f:
         f.write(file_content)
     return links
+
+
+def get_host_and_filename(url):
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+    path_str = parsed_url.path or '__root__'
+    path = path_str.split('/')
+    return (hostname, os.path.join(hostname, *path))
 
 
 UpdateResult = namedtuple('UpdateResult', ['data', 'links'])
