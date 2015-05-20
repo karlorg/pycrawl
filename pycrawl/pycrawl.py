@@ -133,7 +133,13 @@ def update_and_return_links(data, hostname):
 
     process_attrs('a', 'href')
     process_attrs('img', 'src')
-    return UpdateResult(data=str(soup), links=links)
+    try:
+        out_data = str(soup)
+        return UpdateResult(data=out_data, links=links)
+    except RuntimeError:
+        # can't render through BeautifulSoup; for now, just output the
+        # original data with links unchanged
+        return UpdateResult(data=data, links=links)
 
 
 robots_txt_cache = {}
