@@ -86,6 +86,9 @@ class TestPycrawl(unittest.TestCase):
         abs_link = root.find('a', text=re.compile("explicit"))['href']
         self.assertIsNone(urlparse(abs_link).hostname,
                           "absolute local links are changed to relative")
+        ext_link = root.find('a', text=re.compile("remote"))['href']
+        self.assertEqual(urlparse(ext_link).hostname, 'www.bbc.co.uk',
+                         "external links are unchanged")
 
         # now try a page linked from the first
         with open('localhost/local-relative.html') as f:

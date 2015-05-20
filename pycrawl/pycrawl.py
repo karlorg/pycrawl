@@ -10,6 +10,7 @@ try:  # Python 3
 except ImportError:  # Python 2
     import robotparser
     from urlparse import urlparse
+    str = unicode
 
 import bs4
 import requests
@@ -74,7 +75,7 @@ def process_url(url):
         return []
     if response.headers['content-type'] == 'text/html':
         filemode = 'w'
-        file_content = response.text
+        file_content = update_links(response.text, basename)
         links = links_from_data(response.text)
     else:
         filemode = 'wb'
@@ -89,6 +90,21 @@ def links_from_data(data):
     bs = bs4.BeautifulSoup(data)
     result = [tag['href'] for tag in bs.find_all('a')]
     return result
+
+
+def update_links(data, hostname):
+    """Update local links in HTML to work when saved locally."""
+    bs = bs4.BeautifulSoup(data)
+    for a in bs.find_all('a'):
+        try:
+            href = a['href']
+        except KeyError:
+            continue
+        parsed_href = urlparse(href)
+        if parsed_href.hostname == hostname:
+            new_parsed_href = parsed_href._replace(scheme='', netloc='')
+            a['href'] = new_parsed_href.geturl()
+    return str(bs)
 
 
 robots_txt_cache = {}
