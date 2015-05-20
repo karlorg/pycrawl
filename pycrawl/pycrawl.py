@@ -40,8 +40,23 @@ def create_download_dir(url):
             raise
 
 
-def download_site(url):
-    process_url(url)
+def download_site(root_url):
+    pending_urls = {root_url}
+    done_urls = set()
+    root_netloc = urlparse(root_url).netloc
+    while len(pending_urls) > 0:
+        url = pending_urls.pop()
+        if url in done_urls:
+            continue
+        done_urls.add(url)
+        links = process_url(url)
+        for link in links:
+            parsed = urlparse(link)
+            if parsed.hostname is None:
+                parsed = parsed._replace(netloc=root_netloc, scheme='http')
+                link = parsed.geturl()
+            if parsed.netloc == root_netloc and link not in done_urls:
+                pending_urls.add(link)
 
 
 def process_url(url):
