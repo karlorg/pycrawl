@@ -8,8 +8,8 @@ test_pycrawl
 Tests for `pycrawl` module.
 """
 
-from contextlib import contextmanager
 import errno
+from functools import wraps
 import os
 import re
 import shutil
@@ -24,6 +24,29 @@ import bs4
 
 from tests.run_server import run_server, stop_server
 from pycrawl import pycrawl
+
+
+def run_main_with_url(url):
+    """Run main on the given URL, then delete the downloaded files after."""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            argv = ['pycrawl.py', url]
+            try:
+                pycrawl.main(argv)
+                f(*args, **kwargs)
+            finally:
+                # remove created download dir
+                try:
+                    basename = urlparse(url).hostname
+                    shutil.rmtree(basename)
+                except OSError as e:
+                    if e.errno == errno.ENOENT:
+                        pass
+                    else:
+                        raise
+        return wrapper
+    return decorator
 
 
 class TestPycrawl(unittest.TestCase):
@@ -43,36 +66,19 @@ class TestPycrawl(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @contextmanager
-    def run_main_with_url(self, url):
-        argv = ['pycrawl.py', url]
-        try:
-            pycrawl.main(argv)
-            yield
-        finally:
-            try:
-                basename = urlparse(url).hostname
-                shutil.rmtree(basename)
-            except OSError as e:
-                if e.errno == errno.ENOENT:
-                    pass
-                else:
-                    raise
-
+    @run_main_with_url('http://nonexistentsite.nes/badpath')
     def test_nonexistent_url(self):
-        with self.run_main_with_url('http://nonexistentsite.nes/badpath'):
-            pass  # does not raise
+        self.assertFalse(
+            os.path.isfile('nonexistentsite.nes/badpath'))
 
+    @run_main_with_url('http://localhost:8000/Python_logo_100x100.jpg')
     def test_non_html_url(self):
-        with self.run_main_with_url(
-                'http://localhost:8000/Python_logo_100x100.jpg'):
-            self.assertTrue(
-                os.path.isfile('localhost/Python_logo_100x100.jpg'))
+        self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
 
+    @run_main_with_url('http://localhost:8000')
     def test_valid_url_creates_dir_and_file(self):
-        with self.run_main_with_url('http://localhost:8000'):
-            with open('localhost/__root__') as f:
-                document = bs4.BeautifulSoup(f)
+        with open('localhost/__root__') as f:
+            document = bs4.BeautifulSoup(f)
         self.assertTrue(bool(document.find(text=re.compile("Text"))))
 
 
