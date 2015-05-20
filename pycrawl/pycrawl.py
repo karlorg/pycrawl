@@ -53,20 +53,27 @@ def download_site(root_url):
     done_urls = set()
     root_netloc = urlparse(root_url).netloc
     while len(pending_urls) > 0:
-        url = pending_urls.pop()
+        url = get_canonical_url(pending_urls.pop())
         done_urls.add(url)
         links = process_url_and_get_links(url)
         for link in links:
+            link = get_canonical_url(link)
             parsed = urlparse(link)
             if parsed.hostname is None:
                 parsed = parsed._replace(netloc=root_netloc, scheme='http')
                 link = parsed.geturl()
             if parsed.netloc == root_netloc and link not in done_urls:
-                # XXX: temporarily limit to fetching 10 urls so I can
+                # XXX: temporarily limit to fetching a few urls so I can
                 # test on live sites without being too much of a
                 # nuisance
-                if len(done_urls) < 10:
+                if len(done_urls) < 20:
                     pending_urls.add(link)
+
+
+def get_canonical_url(url):
+    return urlparse(url)._replace(params='',
+                                  query='',
+                                  fragment='').geturl()
 
 
 def process_url_and_get_links(url):
