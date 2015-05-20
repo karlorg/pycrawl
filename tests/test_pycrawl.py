@@ -100,6 +100,9 @@ class TestPycrawl(unittest.TestCase):
             explicit = bs4.BeautifulSoup(f)
         self.assertTrue(bool(explicit.find(text=re.compile("explicit"))))
 
+        # the image used on the front page should also be downloaded
+        self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -88,7 +88,11 @@ def process_url(url):
 
 def links_from_data(data):
     bs = bs4.BeautifulSoup(data)
-    result = [tag['href'] for tag in bs.find_all('a')]
+    result = set()
+    for a in bs.find_all('a'):
+        result.add(a['href'])  # XXX: assumes href exists
+    for img in bs.find_all('img'):
+        result.add(img['src'])
     return result
 
 
