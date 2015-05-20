@@ -80,12 +80,7 @@ class TestPycrawl(unittest.TestCase):
         with open('localhost/__root__') as f:
             root = bs4.BeautifulSoup(f)
         self.assertTrue(bool(root.find(text=re.compile("Text"))))
-        rel_link = root.find('a', text=re.compile("relative"))['href']
-        self.assertIsNone(urlparse(rel_link).hostname,
-                          "relative links are unchanged")
-        abs_link = root.find('a', text=re.compile("explicit"))['href']
-        self.assertIsNone(urlparse(abs_link).hostname,
-                          "absolute local links are changed to relative")
+        # check external link
         ext_link = root.find('a', text=re.compile("remote"))['href']
         self.assertEqual(urlparse(ext_link).hostname, 'www.bbc.co.uk',
                          "external links are unchanged")
@@ -94,14 +89,26 @@ class TestPycrawl(unittest.TestCase):
         with open('localhost/local-relative.html') as f:
             relative = bs4.BeautifulSoup(f)
         self.assertTrue(bool(relative.find(text=re.compile("relative"))))
+        # check link in index page
+        rel_link = root.find('a', text=re.compile("relative"))['href']
+        self.assertIsNone(urlparse(rel_link).hostname,
+                          "relative links are unchanged")
 
         # and one linked via an explicit local domain
         with open('localhost/local-explicit.html') as f:
             explicit = bs4.BeautifulSoup(f)
         self.assertTrue(bool(explicit.find(text=re.compile("explicit"))))
+        # check link in index page
+        abs_link = root.find('a', text=re.compile("explicit"))['href']
+        self.assertIsNone(urlparse(abs_link).hostname,
+                          "absolute local links are changed to relative")
 
         # the image used on the front page should also be downloaded
         self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
+        # check link in index page
+        img_src = root.find('img')['src']
+        self.assertIsNone(urlparse(img_src).hostname,
+                          "img src URLs are changed to relative")
 
 
 if __name__ == '__main__':

@@ -98,16 +98,21 @@ def links_from_data(data):
 
 def update_links(data, hostname):
     """Update local links in HTML to work when saved locally."""
+
+    def update_soup_attr_links(tagname, attrname):
+        for tag in bs.find_all(tagname):
+            try:
+                attr = tag[attrname]
+            except KeyError:
+                continue
+            parsed_attr = urlparse(attr)
+            if parsed_attr.hostname == hostname:
+                new_parsed_attr = parsed_attr._replace(scheme='', netloc='')
+                tag[attrname] = new_parsed_attr.geturl()
+
     bs = bs4.BeautifulSoup(data)
-    for a in bs.find_all('a'):
-        try:
-            href = a['href']
-        except KeyError:
-            continue
-        parsed_href = urlparse(href)
-        if parsed_href.hostname == hostname:
-            new_parsed_href = parsed_href._replace(scheme='', netloc='')
-            a['href'] = new_parsed_href.geturl()
+    update_soup_attr_links('a', 'href')
+    update_soup_attr_links('img', 'src')
     return str(bs)
 
 
