@@ -84,6 +84,10 @@ class TestPycrawl(unittest.TestCase):
         with open('localhost/local-relative.html') as f:
             relative = bs4.BeautifulSoup(f)
         self.assertTrue(bool(relative.find(text=re.compile("relative"))))
+        # and one linked via an explicit local domain
+        with open('localhost/local-explicit.html') as f:
+            explicit = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(explicit.find(text=re.compile("explicit"))))
 
 
 if __name__ == '__main__':
