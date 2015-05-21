@@ -2,6 +2,4 @@
 Usage
 ========
 
-To use Python Webcrawler Thing in a project::
-
-    import pycrawl
+Run the ``pycrawl`` script with no arguments to see its usage.
