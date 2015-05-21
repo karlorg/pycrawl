@@ -32,7 +32,11 @@ def main(argv=None):
 
 
 def ensure_scheme(url):
-    """Return the given url with a scheme, if it lacks one."""
+    """Return the given url with a scheme (default http), if it lacks one.
+
+    :param url: URL as a string
+    :return: URL string including a scheme
+    """
     if re.compile("//").search(url):
         # urlparse will work as expected
         parsed = urlparse(url)
@@ -46,6 +50,11 @@ def ensure_scheme(url):
 
 
 def download_site(root_url, max_depth=None):
+    """Crawl and download a website, starting with root_url.
+
+    :param root_url: URL to start from, as a string
+    :param max_depth: if set, follow links only this many levels deep
+    """
     root_netloc = urlparse(root_url).netloc
     pending_urls = [get_canonical_url(root_url)]
     done_urls = set()
@@ -75,7 +84,15 @@ def download_site(root_url, max_depth=None):
 
 
 def get_canonical_url(url, root_netloc=None):
-    """Drop params, query and fragment; optionally add netloc to relative links.
+    """Transform a URL into a 'canonical' form for tracking URLs seen.
+
+    Specifically, drop any parameters, query string, and fragment
+    (ie. ``http://site.com/page;params?query#fragment`` becomes
+    ``http://site.com/page``).
+
+    :param url: URL string
+    :param root_netloc: network location to add if URL has none
+    :return: a canonical URL string
     """
     parsed = urlparse(url)._replace(params='',
                                     query='',
@@ -86,6 +103,11 @@ def get_canonical_url(url, root_netloc=None):
 
 
 def process_url_and_get_links(url):
+    """Download and save url, and if it's HTML, update links and return them.
+
+    :param url: a URL string
+    :return: a list of URLs linked to in the document
+    """
     if not can_robots_fetch(url):
         return []
     print("fetching {}".format(url))
@@ -118,14 +140,18 @@ def get_host_and_filename(url):
     return (hostname, os.path.join(hostname, *path))
 
 
-def get_content_and_links(data, hostname):
+def get_content_and_links(html, hostname):
     """Update and return local links in HTML.
 
     ie. return an HTML document equivalent to the input, but with
     local links adjusted to work in a downloaded copy of the site.
     Also return a list of all link targets from this document.
+
+    :param html: original HTML document
+    :param hostname: hostname from which the document came
+    :return: tuple of replacement HTML and list of linked URLs
     """
-    soup = bs4.BeautifulSoup(data)
+    soup = bs4.BeautifulSoup(html)
     links = []
 
     def process_attrs(tagname, attrname):
@@ -149,8 +175,8 @@ def get_content_and_links(data, hostname):
         return (str(soup), links)
     except RuntimeError:
         # can't render through BeautifulSoup; for now, just output the
-        # original data with links unchanged
-        return (data, links)
+        # original html with links unchanged
+        return (html, links)
 
 
 robots_txt_cache = {}
@@ -163,6 +189,11 @@ class AllowAllRobots(object):
 
 
 def can_robots_fetch(url):
+    """According to the site's robots.txt, may we access this URL?
+
+    :param url: a URL string
+    :rtype: bool
+    """
     parsed_url = urlparse(url)
     robots_url_obj = parsed_url._replace(path='/robots.txt')
     robots_url = robots_url_obj.geturl()
