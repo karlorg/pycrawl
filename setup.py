@@ -38,6 +38,10 @@ setup(
                  'pycrawl'},
     include_package_data=True,
     install_requires=requirements,
+    entry_points={
+        'console_scripts': ['pycrawl = pycrawl.pycrawl:main']
+    },
+
     license="BSD",
     zip_safe=False,
     keywords='pycrawl',
