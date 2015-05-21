@@ -15,6 +15,21 @@ Due to the three day limit, the functionality is very basic -- see below.
 
 * Free software: BSD license
 
+Usage
+-----
+
+Either run the script from the repo by creating a virtualenv,
+installing requirements with pip and doing::
+
+  ./pycrawl/pycrawl.py
+
+Or you can install it (probably into a virtualenv, again) with::
+
+  python setup.py install
+
+and use the ``pycrawl`` script that becomes available.  Calling the
+script with no arguments displays its usage.
+
 Features
 --------
 
