@@ -2,11 +2,6 @@
 Installation
 ============
 
-At the command line::
+At the command line in the repository root directory::
 
-    $ easy_install pycrawl
-
-Or, if you have virtualenvwrapper installed::
-
-    $ mkvirtualenv pycrawl
-    $ pip install pycrawl
+    $ python setup.py install
