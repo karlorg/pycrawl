@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import logging
 import os
 import sys
 try:  # Python 3
@@ -16,11 +15,6 @@ except ImportError:  # Python 2
 import bs4
 import requests
 from requests.exceptions import ConnectionError
-
-
-logging.basicConfig(filename='log',
-                    filemode='a',
-                    level=logging.DEBUG)
 
 
 def main(argv=None):
