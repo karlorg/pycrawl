@@ -41,6 +41,9 @@ def run_main_with_url(url, max_depth=None):
                 # remove created download dir
                 try:
                     basename = urlparse(url).hostname
+                    if not basename:
+                        fixed_url = ''.join(['//', url])
+                        basename = urlparse(fixed_url).hostname
                     shutil.rmtree(basename)
                 except OSError as e:
                     if e.errno == errno.ENOENT:
@@ -76,6 +79,18 @@ class TestPycrawl(unittest.TestCase):
     @run_main_with_url('http://localhost:8000/Python_logo_100x100.jpg')
     def test_non_html_url(self):
         self.assertTrue(os.path.isfile('localhost/Python_logo_100x100.jpg'))
+
+    @run_main_with_url('//localhost:8000', max_depth=0)
+    def test_missing_scheme_with_slashes(self):
+        with open('localhost/__root__') as f:
+            root = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(root.find(text=re.compile("Text"))))
+
+    @run_main_with_url('localhost:8000', max_depth=0)
+    def test_missing_scheme_no_slashes(self):
+        with open('localhost/__root__') as f:
+            root = bs4.BeautifulSoup(f)
+        self.assertTrue(bool(root.find(text=re.compile("Text"))))
 
     @run_main_with_url('http://localhost:8000')
     def test_valid_url_downloads_site(self):

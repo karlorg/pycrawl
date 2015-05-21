@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import errno
-import logging
 import os
+import re
 import sys
 try:  # Python 3
     from urllib import robotparser
@@ -19,11 +18,6 @@ import requests
 from requests.exceptions import ConnectionError
 
 
-logging.basicConfig(filename='log',
-                    filemode='a',
-                    level=logging.DEBUG)
-
-
 def main(argv=None):
     if argv is not None:
         sys.argv = argv
@@ -33,7 +27,22 @@ def main(argv=None):
                         help="maximum recursion depth")
     args = parser.parse_args()
 
-    download_site(args.url, args.max_depth)
+    url = ensure_scheme(args.url)
+    download_site(url, args.max_depth)
+
+
+def ensure_scheme(url):
+    """Return the given url with a scheme, if it lacks one."""
+    if re.compile("//").search(url):
+        # urlparse will work as expected
+        parsed = urlparse(url)
+        if parsed.scheme:
+            return url
+        else:
+            return parsed._replace(scheme='http').geturl()
+    else:
+        # urlparse won't work without at least a "//" in the string
+        return ''.join(['http://', url])
 
 
 def download_site(root_url, max_depth=None):

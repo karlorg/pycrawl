@@ -15,7 +15,7 @@ from subprocess import Popen
 
 
 def run_server(port=8000):
-    with chdir('example-site'):
+    with chdir('tests/example-site'):
         if sys.version_info[0] == 2:
             command = 'python -m SimpleHTTPServer 8000'
         else:
