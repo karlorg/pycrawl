@@ -193,6 +193,7 @@ def can_robots_fetch(url):
 
     :param url: a URL string
     :rtype: bool
+    :raise: RuntimeError, when robots.txt is found but unparseable
     """
     parsed_url = urlparse(url)
     robots_url_obj = parsed_url._replace(path='/robots.txt')
